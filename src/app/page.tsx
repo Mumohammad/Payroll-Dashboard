@@ -1,8 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useToast } from '@/hooks/use-toast'
 import { sonnerToast } from '@/lib/sonner'
+import { createClient as createSupabaseClient } from '@/lib/supabase/client'
 import {
   LayoutDashboard,
   Users,
@@ -12,6 +14,7 @@ import {
   CarFront,
   Upload,
   ScrollText,
+  LogOut,
   Building2,
   AlertTriangle,
   TrendingUp,
@@ -72,9 +75,30 @@ const TABS: { id: TabId; label: string; labelAr: string; icon: any; group: strin
 ]
 
 export default function Home() {
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState<TabId>('dashboard')
   const [runId, setRunId] = useState<string | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [signingOut, setSigningOut] = useState(false)
+  const [signOutError, setSignOutError] = useState('')
+
+  async function handleSignOut() {
+    setSigningOut(true)
+    setSignOutError('')
+    try {
+      const { error } = await createSupabaseClient().auth.signOut()
+      if (error) {
+        setSignOutError('Could not sign out. Please try again.')
+        return
+      }
+      router.replace('/login')
+      router.refresh()
+    } catch {
+      setSignOutError('Could not sign out. Please try again.')
+    } finally {
+      setSigningOut(false)
+    }
+  }
 
   // Load initial runId from latest payroll run
   useEffect(() => {
@@ -118,6 +142,17 @@ export default function Home() {
           >
             <Activity className="h-5 w-5" />
           </button>
+          <button
+            type="button"
+            onClick={handleSignOut}
+            disabled={signingOut}
+            className="grid h-10 w-10 place-items-center rounded-lg border border-border bg-card text-muted-foreground transition hover:bg-accent hover:text-accent-foreground disabled:opacity-50"
+            aria-label="Sign out"
+            title="Sign out"
+          >
+            <LogOut className="h-4 w-4" aria-hidden="true" />
+          </button>
+          {signOutError && <span className="text-xs text-destructive" role="alert">{signOutError}</span>}
         </div>
       </header>
 

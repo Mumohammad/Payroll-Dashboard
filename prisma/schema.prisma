@@ -4,27 +4,28 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ============================================================
 // CENTRAL RULES CONTROL CENTER — single source of truth
 // ============================================================
 model PayrollRuleSet {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   name          String
-  status        String   @default("draft") // draft | active | archived
-  ruleMode      String   @default("orders_based_mode") // days_prorated_mode | orders_based_mode | hybrid_mode
+  status        String    @default("draft") // draft | active | archived
+  ruleMode      String    @default("orders_based_mode") // days_prorated_mode | orders_based_mode | hybrid_mode
   effectiveFrom DateTime?
   effectiveTo   DateTime?
-  currency      String   @default("SAR")
+  currency      String    @default("SAR")
   notes         String?
   snapshotHash  String?
-  createdBy     String   @default("admin")
-  createdAt     DateTime @default(now())
+  createdBy     String    @default("admin")
+  createdAt     DateTime  @default(now())
   updatedBy     String?
-  updatedAt     DateTime @updatedAt
+  updatedAt     DateTime  @updatedAt
   activatedBy   String?
   activatedAt   DateTime?
 
@@ -35,7 +36,7 @@ model PayrollRuleSet {
 }
 
 model PayrollRuleValue {
-  id            String   @id @default(cuid())
+  id            String         @id @default(cuid())
   ruleSetId     String
   ruleKey       String
   ruleLabel     String
@@ -48,7 +49,7 @@ model PayrollRuleValue {
   unit          String?
   validationMin Float?
   validationMax Float?
-  displayOrder  Int      @default(0)
+  displayOrder  Int            @default(0)
   helpText      String?
   ruleSet       PayrollRuleSet @relation(fields: [ruleSetId], references: [id], onDelete: Cascade)
 
@@ -56,18 +57,18 @@ model PayrollRuleValue {
 }
 
 model ContractOverride {
-  id            String   @id @default(cuid())
-  ruleSetId     String
-  contractName  String
-  ruleKey       String
-  ruleLabel     String
-  valueType     String
-  numericValue  Float?
-  textValue     String?
-  booleanValue  Boolean?
-  notes         String?
-  enabled       Boolean  @default(true)
-  ruleSet       PayrollRuleSet @relation(fields: [ruleSetId], references: [id], onDelete: Cascade)
+  id           String         @id @default(cuid())
+  ruleSetId    String
+  contractName String
+  ruleKey      String
+  ruleLabel    String
+  valueType    String
+  numericValue Float?
+  textValue    String?
+  booleanValue Boolean?
+  notes        String?
+  enabled      Boolean        @default(true)
+  ruleSet      PayrollRuleSet @relation(fields: [ruleSetId], references: [id], onDelete: Cascade)
 
   @@unique([ruleSetId, contractName, ruleKey])
 }
@@ -76,234 +77,234 @@ model ContractOverride {
 // COMPANY PROFILE & BRANDING
 // ============================================================
 model CompanyProfile {
-  id              String   @id @default(cuid())
-  name            String   @default("Nokhaba Tatweer for Trading")
-  nameAr          String   @default("مؤسسة نخبة التطوير للتجارة")
-  logo            String?
-  address         String?
-  addressAr       String?
-  phone           String?
-  email           String?
-  vatNumber       String?
-  crNumber        String?
-  footerNote      String?
-  footerNoteAr    String?
-  signatureImg    String?
+  id                String   @id @default(cuid())
+  name              String   @default("Nokhaba Tatweer for Trading")
+  nameAr            String   @default("مؤسسة نخبة التطوير للتجارة")
+  logo              String?
+  address           String?
+  addressAr         String?
+  phone             String?
+  email             String?
+  vatNumber         String?
+  crNumber          String?
+  footerNote        String?
+  footerNoteAr      String?
+  signatureImg      String?
   riderSignatureImg String?
-  stampImg        String?
-  accManagerName  String?
-  updatedAt       DateTime @updatedAt
+  stampImg          String?
+  accManagerName    String?
+  updatedAt         DateTime @updatedAt
 }
 
 // ============================================================
 // DRIVERS
 // ============================================================
 model Driver {
-  id            String   @id @default(cuid())
-  riderId       String   @unique
-  name          String
-  contractName  String   @default("nokhaba_tatweer_ftr")
-  vehicleType   String   @default("car")
-  bankName      String?
-  iban          String?
-  beneficiaryName String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  results       DriverResult[]
-  violations    TrafficViolation[]
+  id                String             @id @default(cuid())
+  riderId           String             @unique
+  name              String
+  contractName      String             @default("nokhaba_tatweer_ftr")
+  vehicleType       String             @default("car")
+  bankName          String?
+  iban              String?
+  beneficiaryName   String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  results           DriverResult[]
+  violations        TrafficViolation[]
   manualAdjustments ManualAdjustment[]
-  incomeRecords IncomeRecord[]
+  incomeRecords     IncomeRecord[]
 }
 
 // ============================================================
 // PAYROLL RUNS (one per month upload)
 // ============================================================
 model PayrollRun {
-  id              String   @id @default(cuid())
-  payrollMonth    String   // e.g. "May 2026"
-  fileName        String
-  ruleSetId       String
-  ruleSnapshot    String   // JSON snapshot of applied rules (immutable)
-  status          String   @default("completed") // validating | processing | completed | failed
-  totalDrivers    Int      @default(0)
-  totalGross      Float    @default(0)
-  totalPenalties  Float    @default(0)
-  totalNet        Float    @default(0)
-  totalVariance   Float    @default(0)
-  totalTraffic    Float    @default(0)
-  importedBy      String   @default("admin")
-  createdAt       DateTime @default(now())
-  ruleSet         PayrollRuleSet @relation(fields: [ruleSetId], references: [id])
-  results         DriverResult[]
-  exceptions      PayrollException[]
+  id             String             @id @default(cuid())
+  payrollMonth   String // e.g. "May 2026"
+  fileName       String
+  ruleSetId      String
+  ruleSnapshot   String // JSON snapshot of applied rules (immutable)
+  status         String             @default("completed") // validating | processing | completed | failed
+  totalDrivers   Int                @default(0)
+  totalGross     Float              @default(0)
+  totalPenalties Float              @default(0)
+  totalNet       Float              @default(0)
+  totalVariance  Float              @default(0)
+  totalTraffic   Float              @default(0)
+  importedBy     String             @default("admin")
+  createdAt      DateTime           @default(now())
+  ruleSet        PayrollRuleSet     @relation(fields: [ruleSetId], references: [id])
+  results        DriverResult[]
+  exceptions     PayrollException[]
 }
 
 model DriverResult {
-  id                       String   @id @default(cuid())
-  payrollRunId             String
-  driverId                 String
-  riderId                  String
-  driverName               String
-  contractName             String
-  payrollMonth             String
-  vehicleType              String
-  inactiveReason           String?
+  id                         String  @id @default(cuid())
+  payrollRunId               String
+  driverId                   String
+  riderId                    String
+  driverName                 String
+  contractName               String
+  payrollMonth               String
+  vehicleType                String
+  inactiveReason             String?
   // Source metrics
-  completedOrders          Int
-  uploadedBasicPayment     Float
-  uploadedCityPayment      Float
-  actualWorkingDays        Float
-  fullyWorkingDays         Float
-  workingHours             Float
-  totalMonthlyWorkingHours Float
+  completedOrders            Int
+  uploadedBasicPayment       Float
+  uploadedCityPayment        Float
+  actualWorkingDays          Float
+  fullyWorkingDays           Float
+  workingHours               Float
+  totalMonthlyWorkingHours   Float
   // Applied rules snapshot
-  activeRuleSetName        String
-  salaryDivisorMode        String
-  appliedBaseSalary        Float
-  appliedStdWorkingDays    Float
-  appliedMonthlyTarget     Float
-  appliedDailyTargetRate   Float
-  appliedSalaryPerOrder    Float
-  appliedBonusPerExtra     Float
+  activeRuleSetName          String
+  salaryDivisorMode          String
+  appliedBaseSalary          Float
+  appliedStdWorkingDays      Float
+  appliedMonthlyTarget       Float
+  appliedDailyTargetRate     Float
+  appliedSalaryPerOrder      Float
+  appliedBonusPerExtra       Float
   appliedDeductionPerMissing Float
-  trafficDeductionsEnabled Boolean
+  trafficDeductionsEnabled   Boolean
   // Calculated metrics
-  dailyBaseRate            Float
-  adjustedBaseSalary       Float
-  adjustedTargetOrders     Float
-  selectedTargetThreshold  Float
-  baseSalaryEquivalent     Float
-  extraOrders              Int
-  missingOrders            Int
-  bonusAmount              Float
-  missingOrderDeduction    Float
-  segmentPayment           Float    @default(0)
+  dailyBaseRate              Float
+  adjustedBaseSalary         Float
+  adjustedTargetOrders       Float
+  selectedTargetThreshold    Float
+  baseSalaryEquivalent       Float
+  extraOrders                Int
+  missingOrders              Int
+  bonusAmount                Float
+  missingOrderDeduction      Float
+  segmentPayment             Float   @default(0)
   // Penalties (JSON map)
-  penaltiesJson            String   // {key: value}
-  totalOtherPenalties      Float
-  trafficViolationsDeduction Float  @default(0)
+  penaltiesJson              String // {key: value}
+  totalOtherPenalties        Float
+  trafficViolationsDeduction Float   @default(0)
   grossSalaryBeforePenalties Float
-  finalNetSalary           Float
-  varianceAmount           Float
-  variancePercentage       Float
-  varianceStatus           String   @default("ok") // ok | minor | major | review
-  reviewStatus             String   @default("ok") // ok | review | flagged
-  exceptionFlag            Boolean  @default(false)
-  performanceBand          String   @default("average") // top | high | average | low | bottom
+  finalNetSalary             Float
+  varianceAmount             Float
+  variancePercentage         Float
+  varianceStatus             String  @default("ok") // ok | minor | major | review
+  reviewStatus               String  @default("ok") // ok | review | flagged
+  exceptionFlag              Boolean @default(false)
+  performanceBand            String  @default("average") // top | high | average | low | bottom
 
-  payrollRun  PayrollRun @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
-  driver      Driver     @relation(fields: [driverId], references: [id])
+  payrollRun PayrollRun @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
+  driver     Driver     @relation(fields: [driverId], references: [id])
 
   @@unique([payrollRunId, driverId])
 }
 
 model PayrollException {
-  id            String   @id @default(cuid())
-  payrollRunId  String
-  code          String
-  severity      String   // info | warning | error
-  source        String
-  rowRef        String?
-  message       String
+  id              String     @id @default(cuid())
+  payrollRunId    String
+  code            String
+  severity        String // info | warning | error
+  source          String
+  rowRef          String?
+  message         String
   suggestedAction String?
-  reviewStatus  String   @default("open") // open | resolved | ignored
-  createdAt     DateTime @default(now())
-  payrollRun    PayrollRun @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
+  reviewStatus    String     @default("open") // open | resolved | ignored
+  createdAt       DateTime   @default(now())
+  payrollRun      PayrollRun @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
 }
 
 // ============================================================
 // TRAFFIC VIOLATIONS / TICKETS
 // ============================================================
 model TrafficViolation {
-  id          String   @id @default(cuid())
-  driverId    String
-  riderId     String
-  ticketDate  DateTime
-  ticketNumber String?
-  violationType String
-  amount      Float
-  status      String   @default("approved") // pending | approved | rejected | paid
-  notes       String?
-  payrollRunId String? // link to payroll run when included
+  id                       String   @id @default(cuid())
+  driverId                 String
+  riderId                  String
+  ticketDate               DateTime
+  ticketNumber             String?
+  violationType            String
+  amount                   Float
+  status                   String   @default("approved") // pending | approved | rejected | paid
+  notes                    String?
+  payrollRunId             String? // link to payroll run when included
   // Installment fields (pay large fines over multiple months)
-  installmentEnabled      Boolean  @default(false)
-  installmentMonthlyAmount Float   @default(0)
-  installmentTotalPaid    Float    @default(0)
-  installmentStatus       String   @default("none") // none | active | completed
-  createdAt   DateTime @default(now())
-  driver      Driver   @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  installmentEnabled       Boolean  @default(false)
+  installmentMonthlyAmount Float    @default(0)
+  installmentTotalPaid     Float    @default(0)
+  installmentStatus        String   @default("none") // none | active | completed
+  createdAt                DateTime @default(now())
+  driver                   Driver   @relation(fields: [driverId], references: [id], onDelete: Cascade)
 }
 
 // ============================================================
 // MANUAL ADJUSTMENTS (License Issuing, Custom Bonuses/Deductions per rider)
 // ============================================================
 model ManualAdjustment {
-  id          String   @id @default(cuid())
-  driverId    String
-  riderId     String
-  title       String
-  titleAr     String?
-  amount      Float
-  type        String   // 'bonus' | 'deduction'
-  category    String   @default("custom") // 'license' | 'custom_bonus' | 'custom_deduction'
-  status      String   @default("active") // 'active' | 'inactive' | 'paid'
-  notes       String?
+  id           String   @id @default(cuid())
+  driverId     String
+  riderId      String
+  title        String
+  titleAr      String?
+  amount       Float
+  type         String // 'bonus' | 'deduction'
+  category     String   @default("custom") // 'license' | 'custom_bonus' | 'custom_deduction'
+  status       String   @default("active") // 'active' | 'inactive' | 'paid'
+  notes        String?
   payrollRunId String?
-  createdAt   DateTime @default(now())
-  driver      Driver   @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  driver       Driver   @relation(fields: [driverId], references: [id], onDelete: Cascade)
 }
 
 // ============================================================
 // CUSTOM BONUSES (defined from Rules Control Center, apply to all or selected riders)
 // ============================================================
 model CustomBonus {
-  id              String   @id @default(cuid())
-  name            String
-  nameAr          String?
-  amount          Float
-  type            String   @default("fixed")
-  description     String?
-  status          String   @default("active")
-  applyToAll      Boolean  @default(true)
-  targetRiderIds  String?  // JSON array of rider IDs when applyToAll=false
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id             String   @id @default(cuid())
+  name           String
+  nameAr         String?
+  amount         Float
+  type           String   @default("fixed")
+  description    String?
+  status         String   @default("active")
+  applyToAll     Boolean  @default(true)
+  targetRiderIds String? // JSON array of rider IDs when applyToAll=false
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
 // ============================================================
 // CUSTOM DEDUCTIONS (with installment support + driver targeting)
 // ============================================================
 model CustomDeduction {
-  id                      String   @id @default(cuid())
-  name                    String
-  nameAr                  String?
-  amount                  Float    // total amount
-  description             String?
-  status                  String   @default("active")
-  applyToAll              Boolean  @default(true)
-  targetRiderIds          String?  // JSON array of rider IDs
+  id                       String   @id @default(cuid())
+  name                     String
+  nameAr                   String?
+  amount                   Float // total amount
+  description              String?
+  status                   String   @default("active")
+  applyToAll               Boolean  @default(true)
+  targetRiderIds           String? // JSON array of rider IDs
   // Installment fields
-  installmentEnabled      Boolean  @default(false)
-  installmentMonthlyAmount Float   @default(0)
-  installmentTotalPaid    Float    @default(0)
-  installmentStatus       String   @default("none") // none | active | completed
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
+  installmentEnabled       Boolean  @default(false)
+  installmentMonthlyAmount Float    @default(0)
+  installmentTotalPaid     Float    @default(0)
+  installmentStatus        String   @default("none") // none | active | completed
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
 }
 
 // ============================================================
 // AUDIT LOG
 // ============================================================
 model AuditLog {
-  id          String   @id @default(cuid())
-  action      String   // rule_create | rule_activate | rule_edit | import | export | payslip_gen
-  entityType  String   // rule_set | payroll_run | traffic_violation | company
+  id          String          @id @default(cuid())
+  action      String // rule_create | rule_activate | rule_edit | import | export | payslip_gen
+  entityType  String // rule_set | payroll_run | traffic_violation | company
   entityId    String?
   ruleSetId   String?
   description String
-  metadata    String?  // JSON
-  performedBy String   @default("admin")
-  createdAt   DateTime @default(now())
+  metadata    String? // JSON
+  performedBy String          @default("admin")
+  createdAt   DateTime        @default(now())
   ruleSet     PayrollRuleSet? @relation(fields: [ruleSetId], references: [id])
 }
 
@@ -313,38 +314,38 @@ model AuditLog {
 
 // Monthly income record per driver per delivery company
 model IncomeRecord {
-  id              String   @id @default(cuid())
-  month           String   // e.g. "2026-08" (YYYY-MM)
-  driverId        String?  // links to Driver.id (nullable so deletion doesn't cascade)
-  riderId         String   // rider ID from Excel (e.g. "4643856")
-  driverName      String
-  companyName     String   // "HungerStation" | "Keeta" | etc.
-  basicPayment    Float    @default(0)
-  distancePayment Float    @default(0)
-  segmentPayment  Float    @default(0)
+  id                     String   @id @default(cuid())
+  month                  String // e.g. "2026-08" (YYYY-MM)
+  driverId               String? // links to Driver.id (nullable so deletion doesn't cascade)
+  riderId                String // rider ID from Excel (e.g. "4643856")
+  driverName             String
+  companyName            String // "HungerStation" | "Keeta" | etc.
+  basicPayment           Float    @default(0)
+  distancePayment        Float    @default(0)
+  segmentPayment         Float    @default(0)
   // Penalties (all treated as deductions)
-  acceptancePenalty       Float @default(0)
-  contactPenalty          Float @default(0)
-  stackingDeduction       Float @default(0)
-  declinedPenalty         Float @default(0)
-  latePenalty             Float @default(0)
-  noShowPenalty           Float @default(0)
-  noShowSpecialPenalty    Float @default(0)
-  dailyAcceptancePenalty  Float @default(0)
-  missedDaysPenalty       Float @default(0)
-  riderBalance            Float    @default(0) // signed: + adds to income, - reduces
+  acceptancePenalty      Float    @default(0)
+  contactPenalty         Float    @default(0)
+  stackingDeduction      Float    @default(0)
+  declinedPenalty        Float    @default(0)
+  latePenalty            Float    @default(0)
+  noShowPenalty          Float    @default(0)
+  noShowSpecialPenalty   Float    @default(0)
+  dailyAcceptancePenalty Float    @default(0)
+  missedDaysPenalty      Float    @default(0)
+  riderBalance           Float    @default(0) // signed: + adds to income, - reduces
   // Custom income fields stored as JSON: [{ name, amount, type: 'add'|'deduct' }]
-  customFieldsJson String?
+  customFieldsJson       String?
   // Calculated totals (cached)
-  totalIncome      Float    @default(0)
-  totalPenalties    Float    @default(0)
+  totalIncome            Float    @default(0)
+  totalPenalties         Float    @default(0)
   // Source tracking
-  sourceFile        String?  // original filename
-  importedBy        String   @default("admin")
-  importNotes      String?
-  createdAt         DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  driver           Driver?  @relation(fields: [driverId], references: [id], onDelete: SetNull)
+  sourceFile             String? // original filename
+  importedBy             String   @default("admin")
+  importNotes            String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+  driver                 Driver?  @relation(fields: [driverId], references: [id], onDelete: SetNull)
 
   @@unique([month, riderId, companyName])
   @@index([month])
@@ -353,34 +354,34 @@ model IncomeRecord {
 
 // Expense category — user can add new ones
 model ExpenseCategory {
-  id              String   @id @default(cuid())
-  name            String   @unique
-  nameAr          String?
-  defaultAmount   Float    @default(0) // suggested amount when creating expense
-  allocationType  String   @default("per_driver") // per_driver | shared | assigned
-  description     String?
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  expenses        Expense[]
+  id             String    @id @default(cuid())
+  name           String    @unique
+  nameAr         String?
+  defaultAmount  Float     @default(0) // suggested amount when creating expense
+  allocationType String    @default("per_driver") // per_driver | shared | assigned
+  description    String?
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  expenses       Expense[]
 }
 
 // Expense record — monthly, per category, allocated per driver / shared / assigned
 model Expense {
-  id              String   @id @default(cuid())
-  month           String   // "2026-08"
-  categoryId      String
-  categoryName    String   // denormalized for history
-  amount          Float    // total amount for the month
-  allocationType  String   // per_driver | shared | assigned
+  id               String          @id @default(cuid())
+  month            String // "2026-08"
+  categoryId       String
+  categoryName     String // denormalized for history
+  amount           Float // total amount for the month
+  allocationType   String // per_driver | shared | assigned
   assignedDriverId String? // when allocationType = 'assigned' — Driver.id
-  assignedRiderId String?  // when allocationType = 'assigned' — rider ID
-  notes           String?
-  receiptUrl      String?
-  createdBy       String   @default("admin")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  category        ExpenseCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  assignedRiderId  String? // when allocationType = 'assigned' — rider ID
+  notes            String?
+  receiptUrl       String?
+  createdBy        String          @default("admin")
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  category         ExpenseCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   @@index([month])
   @@index([categoryId])
@@ -388,23 +389,23 @@ model Expense {
 
 // Monthly driver count — used for shared expense allocation
 model DriverCount {
-  id              String   @id @default(cuid())
-  month           String   @unique // "2026-08"
-  activeDriverCount Int     @default(0)
-  notes           String?
-  confirmedBy     String   @default("admin")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                String   @id @default(cuid())
+  month             String   @unique // "2026-08"
+  activeDriverCount Int      @default(0)
+  notes             String?
+  confirmedBy       String   @default("admin")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
 // Custom income field definitions (per company or global)
 model CustomIncomeField {
-  id              String   @id @default(cuid())
-  name            String
-  nameAr          String?
-  type            String   @default("add") // add | deduct
-  description     String?
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id          String   @id @default(cuid())
+  name        String
+  nameAr      String?
+  type        String   @default("add") // add | deduct
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
