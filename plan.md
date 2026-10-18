@@ -53,3 +53,11 @@ The configured session Supabase API endpoint returned HTTP 404 for read-only Aut
 - Signup configuration: https://supabase.com/docs/guides/local-development/cli/config
 - Prisma integration: https://supabase.com/docs/guides/database/prisma
 - PostgreSQL connection modes: https://supabase.com/docs/guides/database/connecting-to-postgres
+
+## Production-hardening addendum (source-only continuation)
+
+- Keep the original schema-creation migration immutable. Put application-table security in a new forward-only Prisma migration with an explicit allow-list matching the 18 models created by the app migration; do not modify unrelated `public` objects. Enable RLS and revoke `PUBLIC`, `anon`, and `authenticated` table privileges. No direct Data API policies are added; the app uses authenticated server routes and Prisma. Because those tables have no RLS policies, production must confirm the Prisma runtime role owns the tables or has `BYPASSRLS`.
+- For browser-session write APIs, require an `Origin` exactly matching `NEXT_PUBLIC_SITE_URL`; reject absent or alternate origins. This deliberately does not create machine-to-machine write authentication. Configure the exact public scheme/host/port before deployment.
+- Mark Prisma access as server-only, remove the failed write of uploaded payroll workbooks to a fixed ephemeral path, and make Next.js fail production builds on TypeScript errors.
+- Local checks: `npx tsc --noEmit`, `npx prisma validate` with dummy PostgreSQL URLs, and `npm run build` with dummy Supabase/PostgreSQL configuration passed. A local standalone-build POST with an attacker-controlled Origin returned HTTP 403. `npm run lint` remains blocked by 10 React hook/compiler diagnostics in existing components.
+- Not performed: no live Supabase connection, migration application, account invitation, production deployment, database backup, or GitHub push. The local SQLite database remains ignored and untouched.

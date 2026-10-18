@@ -25,6 +25,17 @@ function fmt(n: number): string {
   return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
+async function fetchIncomeExpensesDashboard(month: string, company: string, driverSearch: string) {
+  const params = new URLSearchParams()
+  params.set('month', month)
+  if (company) params.set('company', company)
+  if (driverSearch) params.set('driver', driverSearch)
+  const response = await fetch(`/api/income-expenses/dashboard?${params.toString()}`)
+  const text = await response.text()
+  if (!text) return null
+  try { return JSON.parse(text) } catch { return null }
+}
+
 export function IncomeExpensesView() {
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -97,24 +108,22 @@ export function IncomeExpensesView() {
     }
   }
 
-  const reload = useCallback(() => {
+  const reload = () => {
     setLoading(true)
-    const params = new URLSearchParams()
-    params.set('month', month)
-    if (company) params.set('company', company)
-    if (driverSearch) params.set('driver', driverSearch)
-    fetch(`/api/income-expenses/dashboard?${params.toString()}`)
-      .then(async r => {
-        const text = await r.text()
-        if (!text) return null
-        try { return JSON.parse(text) } catch { return null }
-      })
+    fetchIncomeExpensesDashboard(month, company, driverSearch)
       .then(d => setData(d))
       .catch(() => setData(null))
       .finally(() => setLoading(false))
-  }, [month, company, driverSearch])
+  }
 
-  useEffect(() => { reload() }, [reload])
+  useEffect(() => {
+    let active = true
+    fetchIncomeExpensesDashboard(month, company, driverSearch)
+      .then(d => { if (active) setData(d) })
+      .catch(() => { if (active) setData(null) })
+      .finally(() => { if (active) setLoading(false) })
+    return () => { active = false }
+  }, [month, company, driverSearch])
 
   const months = data?.months ?? []
   const companies = data?.companies ?? []
@@ -589,16 +598,20 @@ function ExpensesList({ month, onReload }: any) {
   const [expenses, setExpenses] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
-  const reload = () => {
-    setLoading(true)
+  const loadExpenses = useCallback(() => {
     fetch(`/api/income-expenses/expenses?month=${month}`)
       .then(r => r.json())
       .then(d => setExpenses(d?.expenses ?? []))
       .catch(() => setExpenses([]))
       .finally(() => setLoading(false))
-  }
+  }, [month])
 
-  useEffect(() => { reload() }, [month])
+  const reload = useCallback(() => {
+    setLoading(true)
+    loadExpenses()
+  }, [loadExpenses])
+
+  useEffect(() => { loadExpenses() }, [loadExpenses])
 
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this expense?')) return
@@ -697,7 +710,7 @@ function ImportDialog({ open, onOpenChange, onImported, defaultMonth }: any) {
     const wb = XLSX.read(buf, { type: 'array' })
     const sheetName = wb.SheetNames[0]
     const sheet = wb.Sheets[sheetName]
-    const jsonRows = XLSX.utils.sheet_to_json(sheet, { defval: null })
+    const jsonRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: null })
     if (jsonRows.length === 0) {
       toast.error('File is empty')
       return

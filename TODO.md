@@ -10,3 +10,12 @@
 - [x] **Design continuity** — “Preserve the current visual system: emerald/teal actions on slate-neutral surfaces, existing Geist/Cairo typography, bilingual labels, and tabular financial numerals. Add only the authentication UI and session affordances; do not redesign existing payroll workflows.”
 - [x] **No local data transfer or unapproved remote change** — “Do not copy, upload, or migrate records from the ignored local SQLite database; leave it untouched. No destructive database operation or live schema change is part of this code pass.”
 - [x] **Honest connectivity status** — “The configured session Supabase API endpoint returned HTTP 404 for read-only Auth and Data API health checks, and no `DATABASE_URL` or `DIRECT_URL` is present. The app must remain unconnected until a valid Supabase project URL/publishable key and database runtime/migration connection strings are configured.”
+
+## Local production-hardening continuation
+
+- [x] **Same-origin mutation protection** — State-changing `/api/*` requests require an `Origin` exactly matching the configured public site origin; session-protected responses remain private and non-cacheable.
+- [x] **Database access boundary** — Prisma is marked server-only; a separate forward-only security migration enables RLS and revokes `PUBLIC`, `anon`, and `authenticated` table privileges only on the 18 payroll app tables. This SQL has not been applied to a database; confirm the production Prisma role owns the tables or has `BYPASSRLS`.
+- [x] **Fail-closed TypeScript build** — Removed `typescript.ignoreBuildErrors`; `npx tsc --noEmit` passes locally.
+- [x] **Sensitive upload handling** — Removed the upload route’s attempted write of payroll workbooks to a fixed ephemeral filesystem path; workbooks are parsed from the request buffer.
+- [x] **Clean lint release gate** — “`npm run lint` passes with zero ESLint errors or warnings, including React hook and React Compiler diagnostics.”
+- [ ] **Live integration release gate** — “Valid production Supabase Auth/database settings are required to verify invitation, database, migration, deployment, and backup workflows, and to confirm that the runtime Prisma database role owns the tables or has `BYPASSRLS`. Write APIs intentionally reject requests with a missing `Origin`; there is no machine-to-machine write-auth exception.”

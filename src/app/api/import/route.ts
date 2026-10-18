@@ -4,8 +4,6 @@ import { getActiveRuleSnapshot } from '@/lib/rule-helpers'
 import { parseWorkbook } from '@/lib/excel-parser'
 import { calculateDriverSalary } from '@/lib/salary-engine'
 import { getAllRiderTrafficDeductions } from '@/lib/traffic-helpers'
-import * as fs from 'fs'
-import * as path from 'path'
 
 // POST /api/import — accepts multipart/form-data with file + payrollMonth
 export async function POST(req: NextRequest) {
@@ -18,22 +16,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No file uploaded' }, { status: 400 })
     }
 
-    const buffer = Buffer.from(await file.arrayBuffer())
-
-    // Save uploaded file to disk for future reference (sync, audit, etc.)
-    try {
-      const uploadDir = '/home/z/my-project/upload'
-      if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true })
-      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
-      const savePath = path.join(uploadDir, safeName)
-      fs.writeFileSync(savePath, buffer)
-    } catch (e) {
-      console.warn('Could not save uploaded file to disk:', e)
-    }
+    const workbookData = await file.arrayBuffer()
 
     let parsed
     try {
-      parsed = parseWorkbook(buffer)
+      parsed = parseWorkbook(workbookData)
     } catch (e: any) {
       return NextResponse.json({
         error: 'Workbook parsing failed',

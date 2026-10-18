@@ -34,7 +34,15 @@ export async function GET(req: NextRequest) {
     const expenses = await db.expense.findMany({ where: { month } })
 
     // Calculate per-driver results
-    const driverResults = []
+    const driverResults: Array<{
+      id: string
+      riderId: string
+      driverName: string
+      companyName: string
+      income: ReturnType<typeof calculateIncome>
+      expenses: Awaited<ReturnType<typeof calculateDriverExpenses>>
+      netProfit: number
+    }> = []
     for (const rec of incomeRecords) {
       const income = calculateIncome(rec)
       const expenseAlloc = await calculateDriverExpenses(month, rec.riderId, activeDriverCount)

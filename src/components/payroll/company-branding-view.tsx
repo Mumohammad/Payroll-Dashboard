@@ -272,7 +272,7 @@ function ImageUpload({ label, labelAr, value, onChange, inputRef, onFileSelect, 
   labelAr: string
   value: string | null
   onChange: (v: string | null) => void
-  inputRef: React.RefObject<HTMLInputElement>
+  inputRef: React.RefObject<HTMLInputElement | null>
   onFileSelect: (file: File) => void
   maxHeight: number
 }) {

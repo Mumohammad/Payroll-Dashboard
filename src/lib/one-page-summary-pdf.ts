@@ -231,7 +231,7 @@ function buildSummaryHTML(data: any): string {
       </div>
       <div style="margin-top: 4px; padding-top: 3px; border-top: 1px solid #e5e7eb;">
         <div style="font-size: 8px; color: #6b7280; margin-bottom: 3px;">Performance Bands:</div>
-        ${Object.entries(bandCounts).filter(([_, v]) => v > 0).map(([band, count]) => `
+        ${(Object.entries(bandCounts) as [string, number][]).filter(([_, v]) => v > 0).map(([band, count]) => `
           <div style="display: flex; justify-content: space-between; padding: 1px 0;">
             <span style="font-size: 9px; color: #374151;">${BAND_LABELS[band] || band}</span>
             <span style="font-size: 9px; font-weight: 700; color: #111827;">${count}</span>

@@ -221,7 +221,7 @@ export function ManualAdjustmentsView() {
         </CardContent>
       </Card>
 
-      <EditDialog open={editOpen} onOpenChange={setEditOpen} adjustment={editing} drivers={drivers} onSaved={reload} />
+      <EditDialog key={`${editOpen}-${editing?.id ?? 'new'}-${drivers[0]?.riderId ?? ''}`} open={editOpen} onOpenChange={setEditOpen} adjustment={editing} drivers={drivers} onSaved={reload} />
     </div>
   )
 }
@@ -229,34 +229,14 @@ export function ManualAdjustmentsView() {
 function EditDialog({ open, onOpenChange, adjustment, drivers, onSaved }: {
   open: boolean; onOpenChange: (v: boolean) => void; adjustment: any | null; drivers: any[]; onSaved: () => void
 }) {
-  const [riderId, setRiderId] = useState('')
-  const [title, setTitle] = useState('')
-  const [titleAr, setTitleAr] = useState('')
-  const [amount, setAmount] = useState('')
-  const [type, setType] = useState('deduction')
-  const [category, setCategory] = useState('license')
-  const [notes, setNotes] = useState('')
+  const [riderId, setRiderId] = useState(adjustment?.riderId ?? drivers[0]?.riderId ?? '')
+  const [title, setTitle] = useState(adjustment?.title ?? 'License Issuing Payment')
+  const [titleAr, setTitleAr] = useState(adjustment?.titleAr || 'رسوم إصدار الرخصة')
+  const [amount, setAmount] = useState(adjustment ? String(adjustment.amount) : '')
+  const [type, setType] = useState(adjustment?.type ?? 'deduction')
+  const [category, setCategory] = useState(adjustment?.category ?? 'license')
+  const [notes, setNotes] = useState(adjustment?.notes || '')
   const [saving, setSaving] = useState(false)
-
-  useEffect(() => {
-    if (adjustment) {
-      setRiderId(adjustment.riderId)
-      setTitle(adjustment.title)
-      setTitleAr(adjustment.titleAr || '')
-      setAmount(String(adjustment.amount))
-      setType(adjustment.type)
-      setCategory(adjustment.category)
-      setNotes(adjustment.notes || '')
-    } else {
-      setRiderId(drivers[0]?.riderId ?? '')
-      setTitle('License Issuing Payment')
-      setTitleAr('رسوم إصدار الرخصة')
-      setAmount('')
-      setType('deduction')
-      setCategory('license')
-      setNotes('')
-    }
-  }, [adjustment, drivers, open])
 
   const applyPreset = (preset: any) => {
     setTitle(preset.title)

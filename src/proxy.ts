@@ -22,6 +22,22 @@ function privateResponse(response: NextResponse) {
   return response
 }
 
+function isSameOriginMutation(request: NextRequest, isApi: boolean) {
+  if (!isApi || !['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method)) return true
+
+  const origin = request.headers.get('origin')
+  if (!origin) return false
+
+  try {
+    const trustedOrigin = new URL(
+      process.env.NEXT_PUBLIC_SITE_URL ?? request.nextUrl.origin,
+    ).origin
+    return origin === trustedOrigin
+  } catch {
+    return false
+  }
+}
+
 function loginRedirect(request: NextRequest, error?: string) {
   const publicOrigin = process.env.NEXT_PUBLIC_SITE_URL
   const destination = publicOrigin
@@ -50,6 +66,13 @@ export async function proxy(request: NextRequest) {
       )
     }
     return loginRedirect(request, 'configuration')
+  }
+
+  if (!isSameOriginMutation(request, isApi)) {
+    return privateResponse(NextResponse.json(
+      { error: 'Cross-origin request blocked.' },
+      { status: 403 },
+    ))
   }
 
   let response = NextResponse.next({ request })

@@ -47,15 +47,15 @@ npm run db:migrate
 npm run dev
 ```
 
-Open <http://localhost:3000>. The dashboard and all `/api/*` endpoints require a verified Supabase Auth session. Unauthenticated page requests go to `/login`; unauthenticated API requests receive HTTP 401. If Supabase Auth is not configured, API requests return HTTP 503 and the login screen explains that setup is incomplete.
+Open <http://localhost:3000>. The dashboard and all `/api/*` endpoints require a verified Supabase Auth session. Unauthenticated page requests go to `/login`; unauthenticated API requests receive HTTP 401. State-changing API requests require an `Origin` that exactly matches `NEXT_PUBLIC_SITE_URL`; missing or mismatched origins are rejected. These endpoints are browser-session APIs: no machine-to-machine write-auth exception is implemented. If Supabase Auth is not configured, API requests return HTTP 503 and the login screen explains that setup is incomplete.
 
 ## Database migrations and production
 
-The Prisma schema targets PostgreSQL. The source-controlled initial migration assumes an empty target schema and creates the current application tables; it does not import or copy existing SQLite rows. Review the target Supabase database before applying migrations. If the database already contains app tables, stop and baseline/reconcile its schema before running this initial migration. Use `npm run db:migrate` for development and `npm run db:deploy` to apply checked-in migrations in production. The project does not provide a schema-reset command.
+The Prisma schema targets PostgreSQL. The source-controlled initial migration assumes an empty target schema and creates the current application tables; it does not import or copy existing SQLite rows. A separate forward-only security migration enables Row Level Security and revokes `PUBLIC`, `anon`, and `authenticated` table privileges on the 18 payroll application tables only; it does not change unrelated `public`-schema tables. There are no direct Data API policies: reads and writes go through authenticated server routes and Prisma. Since the tables have no RLS policies, the configured Prisma runtime role must own these tables or have `BYPASSRLS`; confirm that role/ownership in Supabase before production. Add equivalent RLS and privilege statements for every future application table. Review the target Supabase database before applying migrations. If it already contains app tables without matching Prisma migration history, stop and baseline/reconcile the schema before running the initial migration. Use `npm run db:migrate` for development and `npm run db:deploy` to apply checked-in migrations in production. The project does not provide a schema-reset command.
 
 The existing ignored local SQLite database is left in place and is not uploaded or migrated by this change. If you want its records in Supabase, plan and authorize that data migration separately; never commit payroll, bank, or identity data.
 
-For production, provide the Supabase Auth settings and PostgreSQL URLs in the deployment environment, protect the app behind HTTPS, and maintain backups of the Supabase database.
+For production, provide the Supabase Auth settings and PostgreSQL URLs in the deployment environment, protect the app behind HTTPS, set `NEXT_PUBLIC_SITE_URL` to the exact public origin serving the app (including its scheme and port), and maintain backups of the Supabase database. Alternate preview origins are rejected for write APIs until explicitly supported; machine-to-machine write authentication must be designed separately.
 
 ## Production build
 
@@ -75,7 +75,7 @@ Next.js compiles `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, and `NEXT_P
 - `DATABASE_URL` — Prisma application connection string, usually the Supavisor Session pooler for this standalone server.
 - `DIRECT_URL` — direct or Session pooler connection for Prisma migrations.
 
-The project currently configures Next.js to skip TypeScript build validation. A standalone `npx tsc --noEmit` may report pre-existing issues; treat those separately from the Supabase migration.
+Next.js production builds enforce TypeScript validation. `npx tsc --noEmit` and `npx prisma validate` pass locally with placeholder connection strings and do not contact the database. `npm run lint` still reports 10 React hook/compiler diagnostics in existing components; resolve those before treating lint as clean.
 
 ## Data and repository hygiene
 

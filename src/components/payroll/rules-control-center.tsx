@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   Settings2, Save, RefreshCw, Check, AlertTriangle, RotateCcw,
   ChevronDown, ChevronRight, FileText, History, Info, Beaker, Layers,
@@ -239,18 +239,22 @@ function CustomBonusesSection() {
   const [selectedDrivers, setSelectedDrivers] = useState<string[]>([])
   const [drivers, setDrivers] = useState<any[]>([])
 
-  const reload = () => {
-    setLoading(true)
+  const loadBonuses = useCallback(() => {
     safeFetchJson('/api/custom-bonuses', { bonuses: [] })
       .then(d => setBonuses(d?.bonuses ?? []))
       .finally(() => setLoading(false))
+  }, [])
+
+  const reload = () => {
+    setLoading(true)
+    loadBonuses()
   }
 
   useEffect(() => {
-    reload()
+    loadBonuses()
     // Load all drivers (works without a payroll run)
     safeFetchJson('/api/drivers?all=1', { results: [] }).then(dr => setDrivers(dr?.results ?? []))
-  }, [])
+  }, [loadBonuses])
 
   const triggerRecalc = () => {
     safeFetchJson('/api/dashboard', null).then(d => {
@@ -443,18 +447,22 @@ function CustomDeductionsSection() {
   const [installmentEnabled, setInstallmentEnabled] = useState(false)
   const [installmentMonthly, setInstallmentMonthly] = useState('')
 
-  const reload = () => {
-    setLoading(true)
+  const loadDeductions = useCallback(() => {
     safeFetchJson('/api/custom-deductions', { deductions: [] })
       .then(d => setDeductions(d?.deductions ?? []))
       .finally(() => setLoading(false))
+  }, [])
+
+  const reload = () => {
+    setLoading(true)
+    loadDeductions()
   }
 
   useEffect(() => {
-    reload()
+    loadDeductions()
     // Load all drivers (works without a payroll run)
     safeFetchJson('/api/drivers?all=1', { results: [] }).then(dr => setDrivers(dr?.results ?? []))
-  }, [])
+  }, [loadDeductions])
 
   const triggerRecalc = () => {
     safeFetchJson('/api/dashboard', null).then(d => {

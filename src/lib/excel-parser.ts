@@ -274,6 +274,8 @@ export function parseWorkbook(buffer: ArrayBuffer): ParsedWorkbook {
       tgaDeduction: wrTgaDeduction,
       riderBalance,
       segmentPayment: segmentCol ? num(row[segmentCol]) : 0,
+      customBonuses: [],
+      customDeductions: [],
       trafficViolationsTotal: 0, // filled separately by traffic violation lookup
     })
   }

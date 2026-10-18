@@ -30,7 +30,7 @@ export interface RawDriverData {
   // Custom bonuses (from Rules Control Center)
   customBonuses: Array<{ name: string; nameAr: string | null; amount: number }>
   // Custom deductions (from Rules Control Center)
-  customDeductions: Array<{ name: string; nameAr: string | null; amount: number }>
+  customDeductions: Array<{ name: string; nameAr: string | null; amount: number; monthlyDeduction?: number }>
 }
 
 export interface DriverResultCalc {

@@ -21,6 +21,7 @@ export async function getActiveRuleSnapshot(): Promise<{
     // Auto-create the default active rule set
     ruleSet = await createDefaultActiveRuleSet()
   }
+  if (!ruleSet) throw new Error('Unable to load or create the active payroll rule set.')
   const snapshot: RuleSnapshot = {}
   for (const rv of ruleSet.ruleValues) {
     if (rv.valueType === 'numeric') snapshot[rv.ruleKey] = rv.numericValue ?? 0

@@ -18,7 +18,8 @@ import { toast } from 'sonner'
 
 export function PayslipsView({ runId }: { runId: string | null }) {
   const [results, setResults] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loadedRunId, setLoadedRunId] = useState<string | null>(null)
+  const loading = Boolean(runId) && loadedRunId !== runId
   const [search, setSearch] = useState('')
   const [selectedResult, setSelectedResult] = useState<any | null>(null)
   const [open, setOpen] = useState(false)
@@ -26,14 +27,17 @@ export function PayslipsView({ runId }: { runId: string | null }) {
 
   useEffect(() => {
     if (!runId) return
-    setLoading(true)
+    let active = true
     fetch(`/api/drivers?runId=${runId}`)
       .then(r => r.json())
-      .then(d => setResults(d?.results ?? []))
-      .finally(() => setLoading(false))
+      .then(d => { if (active) setResults(d?.results ?? []) })
+      .catch(() => { if (active) setResults([]) })
+      .finally(() => { if (active) setLoadedRunId(runId) })
+    return () => { active = false }
   }, [runId])
 
-  const filtered = results.filter(r =>
+  const currentResults = loadedRunId === runId ? results : []
+  const filtered = currentResults.filter(r =>
     r.driverName.toLowerCase().includes(search.toLowerCase()) ||
     r.riderId.toLowerCase().includes(search.toLowerCase())
   )

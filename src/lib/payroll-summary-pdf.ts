@@ -176,7 +176,7 @@ function buildRiderPageHtml(data: RiderData, pageNum: number, totalPages: number
   }
 
   // Build traffic detail rows
-  const trafficRows: string[] = (traffic || []).map((t: any) => {
+  const trafficRows = (traffic || []).map((t: any) => {
     const isInstallment = t.installmentEnabled && t.installmentStatus === 'active'
     const remaining = t.installmentEnabled ? Math.max(0, t.amount - t.installmentTotalPaid) : t.amount
     const deductedThisMonth = isInstallment ? t.installmentMonthlyAmount : t.amount

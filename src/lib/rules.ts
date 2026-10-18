@@ -11,7 +11,7 @@ export interface RuleDefinition {
   labelAr: string
   group: string
   valueType: RuleValueType
-  defaultValue: number | string | boolean
+  defaultValue: number | string | boolean | string[]
   unit?: string
   options?: string[]
   min?: number

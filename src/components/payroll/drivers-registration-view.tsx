@@ -204,6 +204,7 @@ export function DriversRegistrationView() {
 
       {/* Edit/Create dialog */}
       <EditDriverDialog
+        key={`${editOpen}-${editing?.id ?? 'new'}`}
         open={editOpen}
         onOpenChange={setEditOpen}
         driver={editing}
@@ -219,34 +220,14 @@ function EditDriverDialog({ open, onOpenChange, driver, onSaved }: {
   driver: any | null
   onSaved: () => void
 }) {
-  const [riderId, setRiderId] = useState('')
-  const [name, setName] = useState('')
-  const [contractName, setContractName] = useState('nokhaba_tatweer_ftr')
-  const [vehicleType, setVehicleType] = useState('car')
-  const [bankName, setBankName] = useState('')
-  const [iban, setIban] = useState('')
-  const [beneficiaryName, setBeneficiaryName] = useState('')
+  const [riderId, setRiderId] = useState(driver?.riderId ?? '')
+  const [name, setName] = useState(driver?.name ?? '')
+  const [contractName, setContractName] = useState(driver?.contractName || 'nokhaba_tatweer_ftr')
+  const [vehicleType, setVehicleType] = useState(driver?.vehicleType || 'car')
+  const [bankName, setBankName] = useState(driver?.bankName || '')
+  const [iban, setIban] = useState(driver?.iban || '')
+  const [beneficiaryName, setBeneficiaryName] = useState(driver?.beneficiaryName || '')
   const [saving, setSaving] = useState(false)
-
-  useEffect(() => {
-    if (driver) {
-      setRiderId(driver.riderId)
-      setName(driver.name)
-      setContractName(driver.contractName || 'nokhaba_tatweer_ftr')
-      setVehicleType(driver.vehicleType || 'car')
-      setBankName(driver.bankName || '')
-      setIban(driver.iban || '')
-      setBeneficiaryName(driver.beneficiaryName || '')
-    } else {
-      setRiderId('')
-      setName('')
-      setContractName('nokhaba_tatweer_ftr')
-      setVehicleType('car')
-      setBankName('')
-      setIban('')
-      setBeneficiaryName('')
-    }
-  }, [driver, open])
 
   const handleSave = async () => {
     if (!riderId || !name) {

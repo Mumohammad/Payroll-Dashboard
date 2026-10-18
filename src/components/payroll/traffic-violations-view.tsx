@@ -253,6 +253,7 @@ export function TrafficViolationsView() {
 
       {/* Edit/Create dialog */}
       <EditViolationDialog
+        key={`${editOpen}-${editing?.id ?? 'new'}-${drivers[0]?.riderId ?? ''}`}
         open={editOpen}
         onOpenChange={setEditOpen}
         violation={editing}
@@ -270,40 +271,16 @@ function EditViolationDialog({ open, onOpenChange, violation, drivers, onSaved }
   drivers: any[]
   onSaved: () => void
 }) {
-  const [riderId, setRiderId] = useState('')
-  const [violationType, setViolationType] = useState('')
-  const [amount, setAmount] = useState('')
-  const [ticketDate, setTicketDate] = useState('')
-  const [ticketNumber, setTicketNumber] = useState('')
-  const [status, setStatus] = useState('approved')
-  const [notes, setNotes] = useState('')
-  const [installmentEnabled, setInstallmentEnabled] = useState(false)
-  const [installmentMonthly, setInstallmentMonthly] = useState('')
+  const [riderId, setRiderId] = useState(violation?.riderId ?? drivers[0]?.riderId ?? '')
+  const [violationType, setViolationType] = useState(violation?.violationType ?? '')
+  const [amount, setAmount] = useState(violation ? String(violation.amount) : '')
+  const [ticketDate, setTicketDate] = useState(violation ? new Date(violation.ticketDate).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10))
+  const [ticketNumber, setTicketNumber] = useState(violation?.ticketNumber || '')
+  const [status, setStatus] = useState(violation?.status ?? 'approved')
+  const [notes, setNotes] = useState(violation?.notes || '')
+  const [installmentEnabled, setInstallmentEnabled] = useState(!!violation?.installmentEnabled)
+  const [installmentMonthly, setInstallmentMonthly] = useState(violation?.installmentMonthlyAmount ? String(violation.installmentMonthlyAmount) : '')
   const [saving, setSaving] = useState(false)
-
-  useEffect(() => {
-    if (violation) {
-      setRiderId(violation.riderId)
-      setViolationType(violation.violationType)
-      setAmount(String(violation.amount))
-      setTicketDate(new Date(violation.ticketDate).toISOString().slice(0, 10))
-      setTicketNumber(violation.ticketNumber || '')
-      setStatus(violation.status)
-      setNotes(violation.notes || '')
-      setInstallmentEnabled(!!violation.installmentEnabled)
-      setInstallmentMonthly(violation.installmentMonthlyAmount ? String(violation.installmentMonthlyAmount) : '')
-    } else {
-      setRiderId(drivers[0]?.riderId ?? '')
-      setViolationType('')
-      setAmount('')
-      setTicketDate(new Date().toISOString().slice(0, 10))
-      setTicketNumber('')
-      setStatus('approved')
-      setNotes('')
-      setInstallmentEnabled(false)
-      setInstallmentMonthly('')
-    }
-  }, [violation, drivers, open])
 
   const handleSave = async () => {
     if (!riderId || !violationType || !amount) {

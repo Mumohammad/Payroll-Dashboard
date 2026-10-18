@@ -37,6 +37,17 @@ const BAND_COLORS: Record<string, string> = {
   bottom: 'bg-rose-500/15 text-rose-700 dark:text-rose-300',
 }
 
+type RuleSummary = {
+  salaryMode: string
+  monthlyBaseSalary: number
+  standardWorkingDays: number
+  monthlyTargetOrders: number
+  dailyTargetRate?: number
+  salaryPerOrderRate: number
+  bonusPerExtraOrder: number
+  deductionPerMissingOrder: number
+}
+
 export function DriversView({ runId, setRunId, onNavigate }: {
   runId: string | null
   setRunId: (id: string) => void
@@ -63,7 +74,7 @@ export function DriversView({ runId, setRunId, onNavigate }: {
         safeFetchJson('/api/rules?active=true', null),
       ])
       const company = companyData?.profile || null
-      let ruleSummary = null
+      let ruleSummary: RuleSummary | null = null
       if (ruleData?.snapshot) {
         const s = ruleData.snapshot
         ruleSummary = {
@@ -90,7 +101,7 @@ export function DriversView({ runId, setRunId, onNavigate }: {
     setSummaryLoading(true)
     try {
       // Fetch full payslip data for each rider
-      const ridersData = []
+      const ridersData: any[] = []
       for (const r of results) {
         const data = await safeFetchJson(`/api/payslip?resultId=${r.id}`, null)
         if (data) {
@@ -118,7 +129,7 @@ export function DriversView({ runId, setRunId, onNavigate }: {
   const handleExportExcel = async () => {
     setExporting(true)
     try {
-      let ruleSummary = null
+      let ruleSummary: RuleSummary | null = null
       try {
         const data = await safeFetchJson('/api/rules?active=true', null)
         if (data?.snapshot) {

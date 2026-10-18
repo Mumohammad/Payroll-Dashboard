@@ -43,7 +43,7 @@ export async function generatePayslipPDFFromElement(element: HTMLElement): Promi
       const fileName = `payslip_${result?.driverName?.replace(/\s+/g, '_') ?? 'driver'}_${result?.payrollMonth?.replace(/\s+/g, '_') ?? 'month'}.pdf`
       pdf.save(fileName)
     }
-    return { blobUrl, download }
+    return { blobUrl: blobUrl.toString(), download }
   } finally {
     try { document.body.removeChild(container) } catch {}
   }
